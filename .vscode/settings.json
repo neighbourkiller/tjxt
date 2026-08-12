@@ -1,0 +1,18 @@
+{
+    "java.jdt.ls.java.home": "D:\\develop\\java\\jdk-17.0.18+8",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "D:\\develop\\java\\jdk-17.0.18+8",
+            "default": true
+        }
+    ],
+    "java.compile.nullAnalysis.mode": "automatic",
+
+    /**   
+    - Windows 下该 JDK 的默认编码实际为 GBK，而 Nacos YAML 包含中文注释。GBK 字节交给 Spring 的 UTF-8 YAML 加载器后解析异常。
+    - NacosConfigDataLoader 会把所有解析异常统一包装成 ConfigDataResourceNotFoundException，所以最终提示成了误导性的：
+    nacos:shared-spring.yaml does not exist **/
+    "java.debug.settings.vmArgs": "-Dfile.encoding=UTF-8",
+    "java.debug.settings.console": "internalConsole"
+}

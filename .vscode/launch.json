@@ -1,0 +1,157 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "AuthApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.AuthApplication",
+            "projectName": "tj-auth-service"
+        },
+        {
+            "type": "java",
+            "name": "SPELUtils",
+            "request": "launch",
+            "mainClass": "com.tianji.common.utils.SPELUtils",
+            "projectName": "tj-common"
+        },
+        {
+            "type": "java",
+            "name": "SignUtils",
+            "request": "launch",
+            "mainClass": "com.tianji.common.utils.SignUtils",
+            "projectName": "tj-common"
+        },
+        {
+            "type": "java",
+            "name": "CourseApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.CourseApplication",
+            "projectName": "tj-course"
+        },
+        {
+            "type": "java",
+            "name": "DataCenterApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.DataCenterApplication",
+            "projectName": "tj-data"
+        },
+        {
+            "type": "java",
+            "name": "DataTypeEnum",
+            "request": "launch",
+            "mainClass": "com.tianji.data.constants.DataTypeEnum",
+            "projectName": "tj-data"
+        },
+        {
+            "type": "java",
+            "name": "ExamApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.ExamApplication",
+            "projectName": "tj-exam"
+        },
+        {
+            "type": "java",
+            "name": "GatewayApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.GatewayApplication",
+            "projectName": "tj-gateway"
+        },
+        {
+            "type": "java",
+            "name": "LearningApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.LearningApplication",
+            "projectName": "tj-learning"
+        },
+        {
+            "type": "java",
+            "name": "MediaApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.MediaApplication",
+            "projectName": "tj-media"
+        },
+        {
+            "type": "java",
+            "name": "MessageApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.MessageApplication",
+            "projectName": "tj-message-service"
+        },
+        {
+            "type": "java",
+            "name": "PayApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.PayApplication",
+            "projectName": "tj-pay-service"
+        },
+        {
+            "type": "java",
+            "name": "PromotionApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.PromotionApplication",
+            "projectName": "tj-promotion"
+        },
+        {
+            "type": "java",
+            "name": "RemarkApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.RemarkApplication",
+            "projectName": "tj-remark"
+        },
+        {
+            "type": "java",
+            "name": "SearchApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.SearchApplication",
+            "projectName": "tj-search"
+        },
+        {
+            "type": "java",
+            "name": "TradeApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.TradeApplication",
+            "projectName": "tj-trade"
+        },
+        {
+            "type": "java",
+            "name": "UserApplication",
+            "request": "launch",
+            "mainClass": "com.tianji.UserApplication",
+            "projectName": "tj-user"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch All Modules",
+            "configurations": [
+                "GatewayApplication",
+                "AuthApplication",
+                "UserApplication",
+                "CourseApplication",
+                "LearningApplication",
+                "ExamApplication",
+                "MediaApplication",
+                "MessageApplication",
+                "PayApplication",
+                "PromotionApplication",
+                "RemarkApplication",
+                "SearchApplication",
+                "TradeApplication",
+                "DataCenterApplication"
+            ],
+
+            // 停止一个模块时，停止所有模块
+            "stopAll": true
+        }
+    ]
+}
