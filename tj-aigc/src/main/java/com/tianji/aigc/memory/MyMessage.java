@@ -17,6 +17,6 @@ public class MyMessage {
     private List<AssistantMessage.ToolCall> toolCalls = List.of();
     private String textContent;
     private List<ToolResponseMessage.ToolResponse> toolResponses = List.of();
-    private Map<String, Object> params = Map.of();
+    private Map<String, Object> params = Map.of(); // 自定义扩展
 
 }

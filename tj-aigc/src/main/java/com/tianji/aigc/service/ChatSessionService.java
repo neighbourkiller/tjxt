@@ -2,6 +2,7 @@ package com.tianji.aigc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tianji.aigc.entity.ChatSession;
+import com.tianji.aigc.vo.MessageVO;
 import com.tianji.aigc.vo.SessionVO;
 
 import java.util.List;
@@ -23,4 +24,12 @@ public interface ChatSessionService extends IService<ChatSession> {
      * @return 热门问题列表
      */
     List<SessionVO.Example> hotExample(Integer num);
+
+    /**
+     * 查询单个历史对话详情
+     *
+     * @param sessionId
+     * @return
+     */
+    List<MessageVO> queryBySessionId(String sessionId);
 }

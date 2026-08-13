@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -41,34 +42,26 @@ public class ChatServiceImpl implements ChatService {
                             .text(this.systemPromptConfig.getChatSystemMessage().get()) // 设置系统提示语
                             .param("now", DateUtils.now()); // 设置当前时间参数
                 })
-                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID,conversationId))
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .user(question)
                 .stream()
                 .chatResponse()
-                .<ChatEventVO>handle((chatResponse, sink) -> {
-                    if (chatResponse.getResult() == null || chatResponse.getResult().getOutput() == null) {
-                        return;
-                    }
-                    String text = chatResponse.getResult()
-                            .getOutput()
-                            .getText();
-                    if (text == null || text.isEmpty())
-                        return;
-
-                    sink.next(ChatEventVO.builder()
+                .doFirst(() -> GENERATE_STATUS.put(sessionId, true)) // 第一次输出内容时执行
+                .doOnComplete(() -> GENERATE_STATUS.remove(sessionId)) // 完成时执行，删除标识
+                .doOnError(throwable -> GENERATE_STATUS.remove(sessionId)) // 出现异常时，删除标识
+                .takeWhile(s -> Optional.ofNullable(GENERATE_STATUS.get(sessionId)).orElse(false))
+                .map(chatResponse -> {
+                    // 获取大模型的输出的内容
+                    String text = chatResponse.getResult().getOutput().getText();
+                    // 封装响应对象
+                    return ChatEventVO.builder()
                             .eventData(text)
                             .eventType(ChatEventTypeEnum.DATA.getValue())
-                            .build());
+                            .build();
                 })
-                .concatWithValues(ChatEventVO.builder()
+                .concatWith(Flux.just(ChatEventVO.builder()  // 标记输出结束
                         .eventType(ChatEventTypeEnum.STOP.getValue())
-                        .build())
-                .doFirst(() -> GENERATE_STATUS.put(sessionId, true)) // 订阅时标记为生成中
-                .doOnError(throwable -> GENERATE_STATUS.remove(sessionId)) // 出现异常时，删除标识
-                .doOnComplete(() -> GENERATE_STATUS.remove(sessionId)) // 完成时执行，删除标识
-                .takeWhile(response -> { // 通过返回值来控制Flux流是否继续，true：继续，false：终止
-                    return GENERATE_STATUS.getOrDefault(sessionId, false);
-                });
+                        .build()));
     }
 
     @Override

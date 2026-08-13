@@ -1,5 +1,6 @@
 package com.tianji.aigc.memory;
 
+import cn.hutool.core.collection.CollStreamUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.stream.StreamUtil;
 import cn.hutool.core.util.StrUtil;
@@ -17,7 +18,7 @@ import java.util.Set;
  */
 public class RedisChatMemoryRepository implements ChatMemoryRepository {
 
-    public static final String DEFAULT_PREFIX = "CAHT";
+    public static final String DEFAULT_PREFIX = "CHAT:";
     private final String prefix;
 
     @Resource
@@ -44,7 +45,15 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
 
     @Override
     public List<Message> findByConversationId(String conversationId) {
-        return List.of();
+        // 生成Redis键名用于存储会话消息
+        var redisKey = this.getKey(conversationId);
+        // 获取Redis列表操作对象
+        var listOps = this.stringRedisTemplate.boundListOps(redisKey);
+
+        // 从Redis列表中获取所有的数据
+        var messages = listOps.range(0, -1);
+        // 将Redis返回的字符串列表转换为Message对象列表
+        return CollStreamUtil.toList(messages, MessageUtil::toMessage);
     }
 
     @Override
@@ -55,7 +64,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         // 保存数据时，会传入全部的消息数据，包括之前的数据，所以需要先删除之前的数据，再添加新的数据
         this.deleteByConversationId(conversationId);
         // 将消息序列化并添加到Redis列表的右侧
-        messages.forEach(message -> listOps.rightPush(JSONUtil.toJsonStr(message)));
+        messages.forEach(message -> listOps.rightPush(MessageUtil.toJson(message)));
     }
 
     @Override

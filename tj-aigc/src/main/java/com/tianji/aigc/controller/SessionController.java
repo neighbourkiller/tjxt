@@ -2,6 +2,7 @@ package com.tianji.aigc.controller;
 
 import com.tianji.aigc.dto.ChatDTO;
 import com.tianji.aigc.service.ChatSessionService;
+import com.tianji.aigc.vo.MessageVO;
 import com.tianji.aigc.vo.SessionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -33,5 +34,16 @@ public class SessionController {
     public List<SessionVO.Example> getHotQuestion(@RequestParam(value = "n", defaultValue = "3") Integer num) {
         return this.chatSessionService.hotExample(num);
     }
+
+    /**
+     * 查询单个历史对话详情
+     * @param sessionId
+     * @return
+     */
+    @GetMapping("/{sessionId}")
+    public List<MessageVO> queryBySessionId(@PathVariable("sessionId") String sessionId){
+        return chatSessionService.queryBySessionId(sessionId);
+    }
+
 
 }
