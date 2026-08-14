@@ -3,6 +3,7 @@ package com.tianji.aigc.config;
 import com.tianji.aigc.mapper.ChatMemoryMessageMapper;
 import com.tianji.aigc.memory.jdbc.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
+import com.tianji.aigc.memory.mongodb.MongoDBChatMemoryRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -71,6 +72,22 @@ public class SpringAIConfig {
     )
     public ChatMemoryRepository mysqlChatMemoryRepository(ChatMemoryMessageMapper  memoryMessageMapper) {
         return new MysqlChatMemoryRepository(memoryMessageMapper);
+    }
+
+
+    /**
+     * MongoDB
+     *
+     */
+
+    @Bean
+    @ConditionalOnProperty(
+            prefix = "tj.ai.memory",
+            name = "type",
+            havingValue = "MongoDB"
+    )
+    public ChatMemoryRepository mongoDBChatMemoryRepository() {
+        return new MongoDBChatMemoryRepository();
     }
 
 
