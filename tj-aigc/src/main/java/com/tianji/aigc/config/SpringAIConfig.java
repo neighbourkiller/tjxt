@@ -1,15 +1,17 @@
 package com.tianji.aigc.config;
 
+import com.tianji.aigc.mapper.ChatMemoryMessageMapper;
+import com.tianji.aigc.memory.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,10 +43,36 @@ public class SpringAIConfig {
         return new SimpleLoggerAdvisor();
     }
 
+    /**
+     * Redis
+     *
+     */
     @Bean
-    public ChatMemoryRepository redisChatMemoryRepository() {
+    @ConditionalOnProperty(
+            prefix = "tj.ai.memory",
+            name = "type",
+            havingValue = "Redis",
+            matchIfMissing = true
+    )
+    public ChatMemoryRepository redisChatMemoryRepository() { // 按配置文件属性来确认是否创建
         return new RedisChatMemoryRepository();
     }
+
+    /**
+     * MySQL
+     *
+     */
+
+    @Bean
+    @ConditionalOnProperty(
+            prefix = "tj.ai.memory",
+            name = "type",
+            havingValue = "MySQL"
+    )
+    public ChatMemoryRepository mysqlChatMemoryRepository(ChatMemoryMessageMapper  memoryMessageMapper) {
+        return new MysqlChatMemoryRepository(memoryMessageMapper);
+    }
+
 
     @Bean
     public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
