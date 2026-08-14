@@ -72,11 +72,30 @@ public class ChatServiceImpl implements ChatService {
                         }
                 )
                 .takeWhile(s -> hashOps.get(sessionId) != null)
-                .map(chatResponse -> {
+                .mapNotNull(chatResponse -> {
                     // 获取大模型的输出的内容
-                    String text = chatResponse.getResult().getOutput().getText();
+                    var result = chatResponse.getResult();
+                    if (result == null || result.getOutput() == null) {
+                        return null;
+                    }
+
+                    var finishReason = result.getMetadata().getFinishReason();
+                    if (Constant.STOP.equalsIgnoreCase(finishReason)) {
+                        log.debug("结束原因: {}", finishReason);
+                        // 获取消息id，并将请求id存储到工具结果缓存中，以便后续工具调用可以使用
+                        var messageId = chatResponse.getMetadata().getId();
+                        ToolResultHolder.put(messageId, Constant.REQUEST_ID, requestId);
+                    }
+
+                    var text = result.getOutput().getText();
+                    if (text == null || text.isEmpty()) {
+                        return null;
+                    }
+
                     // 追加到输出内容中
                     outputBuilder.append(text);
+
+
                     // 封装响应对象
                     return ChatEventVO.builder()
                             .eventData(text)

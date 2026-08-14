@@ -1,8 +1,15 @@
 package com.tianji.aigc.memory;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
+import com.tianji.aigc.config.ToolResultHolder;
+import com.tianji.aigc.constants.Constant;
 import org.springframework.ai.chat.messages.*;
+
+import java.util.Map;
 
 /**
  * 消息转换工具类，提供消息对象与JSON字符串之间的转换功能，主要用于Redis存储格式转换
@@ -20,9 +27,36 @@ public class MessageUtil {
         // 设置消息内容
         myMessage.setTextContent(message.getText());
         if (message instanceof AssistantMessage assistantMessage) {
+            // 设置工具调用信息
             myMessage.setToolCalls(assistantMessage.getToolCalls());
+
+            // 如果AssistantMessage中包含工具调用信息，则尝试从ToolResultHolder中获取相关参数并设置到MyMessage中
+            if (assistantMessage.hasToolCalls()) {
+                // 从消息的元数据中获取消息ID
+                var messageId = MapUtil.getStr(
+                        message.getMetadata(), Constant.ID
+                );
+                // 如果消息ID不为空，则尝试从ToolResultHolder中获取请求ID和相关参数
+                if (messageId != null) {
+                    var requestId = Convert.toStr(
+                            ToolResultHolder.get(
+                                    messageId,
+                                    Constant.REQUEST_ID
+                            )
+                    );
+                    // 从ToolResultHolder中获取与请求ID相关的参数
+                    var params = ToolResultHolder.get(requestId);
+                    // 如果参数不为空，则将其设置到MyMessage中
+                    if (ObjectUtil.isNotEmpty(params)) {
+                        myMessage.setParams(params);
+                    }
+                    // 移除ToolResultHolder中与消息ID相关的缓存，避免内存泄漏
+                    ToolResultHolder.remove(messageId);
+                }
+            }
         }
 
+        // 设置工具响应信息
         if (message instanceof ToolResponseMessage toolResponseMessage) {
             myMessage.setToolResponses(toolResponseMessage.getResponses());
         }
