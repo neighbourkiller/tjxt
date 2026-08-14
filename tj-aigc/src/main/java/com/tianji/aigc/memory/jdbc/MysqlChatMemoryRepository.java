@@ -1,9 +1,10 @@
-package com.tianji.aigc.memory;
+package com.tianji.aigc.memory.jdbc;
 
 import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tianji.aigc.entity.ChatMemoryMessage;
 import com.tianji.aigc.mapper.ChatMemoryMessageMapper;
+import com.tianji.aigc.memory.MessageUtil;
 import com.tianji.common.utils.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;

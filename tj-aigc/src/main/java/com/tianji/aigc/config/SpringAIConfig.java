@@ -1,7 +1,7 @@
 package com.tianji.aigc.config;
 
 import com.tianji.aigc.mapper.ChatMemoryMessageMapper;
-import com.tianji.aigc.memory.MysqlChatMemoryRepository;
+import com.tianji.aigc.memory.jdbc.MysqlChatMemoryRepository;
 import com.tianji.aigc.memory.RedisChatMemoryRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
