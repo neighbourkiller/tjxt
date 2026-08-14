@@ -42,4 +42,4 @@ tj:
           timeout-ms: 20000
     memory:
       max: 100 #存储最大的聊天记录数
-      type: MySQL #Redis / MySQL / MongoDB
+      type: Redis #Redis / MySQL / MongoDB
