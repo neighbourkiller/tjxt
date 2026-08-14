@@ -1,7 +1,10 @@
 package com.tianji.aigc.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.tianji.aigc.config.SystemPromptConfig;
+import com.tianji.aigc.config.ToolResultHolder;
+import com.tianji.aigc.constants.Constant;
 import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
@@ -27,6 +30,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
+    public static final ChatEventVO STOP_EVENT = ChatEventVO.builder()  // 标记输出结束
+            .eventType(ChatEventTypeEnum.STOP.getValue())
+            .build();
     private final ChatClient chatClient;
     private final SystemPromptConfig systemPromptConfig;
     private final ChatMemory chatMemory;
@@ -43,6 +49,8 @@ public class ChatServiceImpl implements ChatService {
         var outputBuilder = new StringBuilder();
 
         var hashOps = stringRedisTemplate.boundHashOps(GENERATE_STATUS_KEY);
+        // 生成请求id
+        var requestId = IdUtil.simpleUUID();
 
         return this.chatClient.prompt()
                 .system(promptSystem -> {
@@ -51,6 +59,7 @@ public class ChatServiceImpl implements ChatService {
                             .param("now", DateUtils.now()); // 设置当前时间参数
                 })
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .toolContext(Map.of(Constant.REQUEST_ID, requestId)) // 向工具上下文中传递请求id
                 .user(question)
                 .stream()
                 .chatResponse()
@@ -74,9 +83,19 @@ public class ChatServiceImpl implements ChatService {
                             .eventType(ChatEventTypeEnum.DATA.getValue())
                             .build();
                 })
-                .concatWith(Flux.just(ChatEventVO.builder()  // 标记输出结束
-                        .eventType(ChatEventTypeEnum.STOP.getValue())
-                        .build()));
+                .concatWith(Flux.defer(() -> {
+                    var result = ToolResultHolder.get(requestId);
+                    if (ObjectUtil.isNotEmpty(result)) {
+                        // 删除工具结果缓存，避免内存泄漏
+                        ToolResultHolder.remove(requestId);
+                        // 如果工具结果不为空，则输出工具结果
+                        return Flux.just(ChatEventVO.builder()
+                                .eventType(ChatEventTypeEnum.PARAM.getValue())
+                                .eventData(result)
+                                .build(), STOP_EVENT);
+                    }
+                    return Flux.just(STOP_EVENT);// 结束标识
+                }));
     }
 
     /**
