@@ -14,8 +14,11 @@ import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -41,6 +44,8 @@ public class ChatServiceImpl implements ChatService {
     private static final String GENERATE_STATUS_KEY = "GENERATE_STATUS";
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final VectorStore vectorStore;
+
     @Override
     public Flux<ChatEventVO> chat(String question, String sessionId) {
         // 获取对话id
@@ -55,13 +60,24 @@ public class ChatServiceImpl implements ChatService {
         // 获取用户id
         var userId = UserContext.getUser();
 
+        // 定义RAG增强
+        var qaAdvisor = QuestionAnswerAdvisor.builder(this.vectorStore)
+                .searchRequest(SearchRequest.builder()
+                        .similarityThreshold(0.6d) // 相似度阈值
+                        .topK(6)  // 搜索的条数， 不能太多
+                        .build())
+                .build();
+
+
         return this.chatClient.prompt()
                 .system(promptSystem -> {
                     promptSystem
                             .text(this.systemPromptConfig.getChatSystemMessage().get()) // 设置系统提示语
                             .param("now", DateUtils.now()); // 设置当前时间参数
                 })
-                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .advisors(advisor -> advisor
+                        .advisors(qaAdvisor) // 添加RAG增强
+                        .param(ChatMemory.CONVERSATION_ID, conversationId)) // 设置对话记忆中的对话id参数
                 .toolContext(Map.of(Constant.REQUEST_ID, requestId, Constant.USER_ID, userId)) // 向工具上下文中传递请求id和用户id
                 .user(question)
                 .stream()
