@@ -9,6 +9,7 @@ import com.tianji.aigc.config.SessionProperties;
 import com.tianji.aigc.entity.ChatSession;
 import com.tianji.aigc.enums.MessageTypeEnum;
 import com.tianji.aigc.mapper.ChatSessionMapper;
+import com.tianji.aigc.memory.MyAssistantMessage;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.service.ChatSessionService;
 import com.tianji.aigc.vo.MessageVO;
@@ -61,6 +62,12 @@ public class ChatSessionServiceImpl extends ServiceImpl<ChatSessionMapper, ChatS
 
     private final ChatMemory chatMemory;
 
+    /**
+     * 根据会话ID查询历史消息
+     *
+     * @param sessionId 会话ID
+     * @return 历史消息列表
+     */
     @Override
     public List<MessageVO> queryBySessionId(String sessionId) {
         // 根据会话ID获取对话ID
@@ -72,10 +79,20 @@ public class ChatSessionServiceImpl extends ServiceImpl<ChatSessionMapper, ChatS
                 // 过滤掉非用户消息和助手消息
                 .filter(message -> message.getMessageType() == MessageType.ASSISTANT || message.getMessageType() == MessageType.USER)
                 // 转换为MessageVO对象
-                .map(message -> MessageVO.builder()
-                        .content(message.getText())
-                        .type(MessageTypeEnum.valueOf(message.getMessageType().name()))
-                        .build())
+                .map(message -> {
+                    if (message instanceof MyAssistantMessage myAssistantMessage) {
+                        return MessageVO.builder()
+                                .content(myAssistantMessage.getText())
+                                .type(MessageTypeEnum.valueOf(myAssistantMessage.getMessageType().name()))
+                                .params(myAssistantMessage.getParams())
+                                .build();
+                    }
+
+                    return MessageVO.builder()
+                            .content(message.getText())
+                            .type(MessageTypeEnum.valueOf(message.getMessageType().name()))
+                            .build();
+                })
                 .toList();
     }
 }

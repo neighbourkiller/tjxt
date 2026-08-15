@@ -31,29 +31,29 @@ public class MessageUtil {
             myMessage.setToolCalls(assistantMessage.getToolCalls());
 
             // 如果AssistantMessage中包含工具调用信息，则尝试从ToolResultHolder中获取相关参数并设置到MyMessage中
-            if (assistantMessage.hasToolCalls()) {
-                // 从消息的元数据中获取消息ID
-                var messageId = MapUtil.getStr(
-                        message.getMetadata(), Constant.ID
+//            if (assistantMessage.hasToolCalls()) {
+            // 从消息的元数据中获取消息ID
+            var messageId = MapUtil.getStr(
+                    message.getMetadata(), Constant.ID
+            );
+            // 如果消息ID不为空，则尝试从ToolResultHolder中获取请求ID和相关参数
+            if (messageId != null) {
+                var requestId = Convert.toStr(
+                        ToolResultHolder.get(
+                                messageId,
+                                Constant.REQUEST_ID
+                        )
                 );
-                // 如果消息ID不为空，则尝试从ToolResultHolder中获取请求ID和相关参数
-                if (messageId != null) {
-                    var requestId = Convert.toStr(
-                            ToolResultHolder.get(
-                                    messageId,
-                                    Constant.REQUEST_ID
-                            )
-                    );
-                    // 从ToolResultHolder中获取与请求ID相关的参数
-                    var params = ToolResultHolder.get(requestId);
-                    // 如果参数不为空，则将其设置到MyMessage中
-                    if (ObjectUtil.isNotEmpty(params)) {
-                        myMessage.setParams(params);
-                    }
-                    // 移除ToolResultHolder中与消息ID相关的缓存，避免内存泄漏
-                    ToolResultHolder.remove(messageId);
+                // 从ToolResultHolder中获取与请求ID相关的参数
+                var params = ToolResultHolder.get(requestId);
+                // 如果参数不为空，则将其设置到MyMessage中
+                if (ObjectUtil.isNotEmpty(params)) {
+                    myMessage.setParams(params);
                 }
+                // 移除ToolResultHolder中与消息ID相关的缓存，避免内存泄漏
+                ToolResultHolder.remove(messageId);
             }
+//            }
         }
 
         // 设置工具响应信息
@@ -86,7 +86,14 @@ public class MessageUtil {
                         .build();
             }
             case ASSISTANT -> {
-                return new AssistantMessage(myMessage.getTextContent(), myMessage.getMetadata(), myMessage.getToolCalls());
+//                return new AssistantMessage(myMessage.getTextContent(), myMessage.getMetadata(), myMessage.getToolCalls());
+                // 使用自定义的MyAssistantMessage类来创建AssistantMessage对象，以便包含额外的参数信息
+                return new MyAssistantMessage(
+                        myMessage.getTextContent(),
+                        myMessage.getMetadata(),
+                        myMessage.getToolCalls(),
+                        myMessage.getMedia(),
+                        myMessage.getParams());
             }
             case TOOL -> {
                 return new ToolResponseMessage(myMessage.getToolResponses(), myMessage.getMetadata());

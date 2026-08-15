@@ -9,6 +9,7 @@ import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
 import com.tianji.common.utils.DateUtils;
+import com.tianji.common.utils.UserContext;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,8 @@ public class ChatServiceImpl implements ChatService {
         var hashOps = stringRedisTemplate.boundHashOps(GENERATE_STATUS_KEY);
         // 生成请求id
         var requestId = IdUtil.simpleUUID();
+        // 获取用户id
+        var userId = UserContext.getUser();
 
         return this.chatClient.prompt()
                 .system(promptSystem -> {
@@ -59,7 +62,7 @@ public class ChatServiceImpl implements ChatService {
                             .param("now", DateUtils.now()); // 设置当前时间参数
                 })
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .toolContext(Map.of(Constant.REQUEST_ID, requestId)) // 向工具上下文中传递请求id
+                .toolContext(Map.of(Constant.REQUEST_ID, requestId, Constant.USER_ID, userId)) // 向工具上下文中传递请求id和用户id
                 .user(question)
                 .stream()
                 .chatResponse()
