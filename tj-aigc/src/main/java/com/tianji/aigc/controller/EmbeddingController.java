@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+
 @Slf4j
 @RestController
 @RequestMapping("/embedding")
@@ -61,10 +62,7 @@ public class EmbeddingController {
 
     @GetMapping("/search/all")
     public List<Document> searchAll() throws IOException {
-        /*return this.vectorStore.similaritySearch(SearchRequest.builder()
-                .query("")
-                .topK(Integer.MAX_VALUE)  // 获取所有向量
-                .build());*/
+//        return this.vectorStore.similaritySearch(SearchRequest.builder().query("all").topK(999).build());
 
         return elasticsearchClient.search(s -> s
                         .index(ES_INDEX_NAME)

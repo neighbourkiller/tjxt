@@ -43,6 +43,5 @@ public class CourseTools {
                     return courseInfo;
                 })
                 .orElse(null);
-
     }
 }
