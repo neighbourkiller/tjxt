@@ -7,10 +7,10 @@ import com.tianji.aigc.config.ToolResultHolder;
 import com.tianji.aigc.constants.Constant;
 import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
+import com.tianji.aigc.service.ChatSessionService;
 import com.tianji.aigc.vo.ChatEventVO;
 import com.tianji.common.utils.DateUtils;
 import com.tianji.common.utils.UserContext;
-import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -23,10 +23,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.time.Duration;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 @Slf4j
@@ -40,11 +37,10 @@ public class ChatServiceImpl implements ChatService {
     private final ChatClient chatClient;
     private final SystemPromptConfig systemPromptConfig;
     private final ChatMemory chatMemory;
-
-    private static final String GENERATE_STATUS_KEY = "GENERATE_STATUS";
-    private final StringRedisTemplate stringRedisTemplate;
-
-    private final VectorStore vectorStore;
+    private static final String GENERATE_STATUS_KEY = "GENERATE_STATUS"; // 用于标记大模型输出的状态，防止中断后继续输出
+    private final StringRedisTemplate stringRedisTemplate; // redis模板，用于存储大模型输出的状态
+    private final VectorStore vectorStore; // 向量存储，用于RAG增强
+    private final ChatSessionService chatSessionService;
 
     @Override
     public Flux<ChatEventVO> chat(String question, String sessionId) {
@@ -83,7 +79,16 @@ public class ChatServiceImpl implements ChatService {
                 .stream()
                 .chatResponse()
                 .doFirst(() -> hashOps.put(sessionId, "true")) // 第一次输出内容时执行
-                .doOnComplete(() -> hashOps.delete(sessionId)) // 完成时执行，删除标识
+                .doOnComplete(() -> {
+                    // 只有大模型正常回答完成后，才生成标题并更新会话信息
+                    hashOps.delete(sessionId);
+                    this.chatSessionService.update(
+                            sessionId,
+                            question,
+                            outputBuilder.toString(),
+                            userId
+                    );
+                })
                 .doOnError(throwable -> hashOps.delete(sessionId)) // 出现异常时，删除标识
                 .doOnCancel(() -> {
                             // 当输出被取消时，保存输出的内容到历史记录中

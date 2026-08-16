@@ -2,6 +2,7 @@ package com.tianji.aigc.controller;
 
 import com.tianji.aigc.dto.ChatDTO;
 import com.tianji.aigc.service.ChatSessionService;
+import com.tianji.aigc.vo.ChatSessionVO;
 import com.tianji.aigc.vo.MessageVO;
 import com.tianji.aigc.vo.SessionVO;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/session")
@@ -41,9 +43,30 @@ public class SessionController {
      * @return
      */
     @GetMapping("/{sessionId}")
-    public List<MessageVO> queryBySessionId(@PathVariable("sessionId") String sessionId){
+    public List<MessageVO> queryBySessionId(@PathVariable("sessionId") String sessionId) {
         return chatSessionService.queryBySessionId(sessionId);
     }
 
+    /**
+     * 获取历史会话列表
+     * @return
+     */
+    @GetMapping("/history")
+    public Map<String, List<ChatSessionVO>> getHistory(){
+        return chatSessionService.getHistory();
+    }
 
+    /**
+     * 删除历史对话
+     */
+    @DeleteMapping("/history")
+    public void deleteHistory(@RequestParam("sessionId") String sessionId) {
+        chatSessionService.deleteHistory(sessionId);
+    }
+
+    @PutMapping("/history")
+    public void update(@RequestParam("sessionId") String sessionId,
+                       @RequestParam("title") String title){
+        chatSessionService.updateTitle(sessionId, title);
+    }
 }
