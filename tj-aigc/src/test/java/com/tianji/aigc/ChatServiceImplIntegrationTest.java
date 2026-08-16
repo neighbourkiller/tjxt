@@ -1,6 +1,7 @@
 package com.tianji.aigc;
 
 import com.tianji.aigc.service.ChatService;
+import com.tianji.aigc.vo.ChatEventVO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ class ChatServiceImplIntegrationTest {
 
     @Test
     void shouldConnectToOpenRouterAndStreamResponse() {
-        List<String> chunks = chatService
+        List<ChatEventVO> chunks = chatService
                 .chat("请只回复 OPENROUTER_OK", "integration-test")
                 .doOnNext(chunk ->
                         System.out.println(
@@ -40,13 +41,13 @@ class ChatServiceImplIntegrationTest {
                         )
                 )
                 .collectList()
-                .block(Duration.ofSeconds(90));
+                .block();
 
         Assertions.assertNotNull(chunks);
         Assertions.assertFalse(chunks.isEmpty());
         Assertions.assertEquals("[DONE]", chunks.get(chunks.size() - 1));
 
-        String content = String.join("", chunks);
+        String content = String.join((CharSequence) "", (CharSequence) chunks);
         Assertions.assertTrue(content.length() > "[DONE]".length());
     }
 }

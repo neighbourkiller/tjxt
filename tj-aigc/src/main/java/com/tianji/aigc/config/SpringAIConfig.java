@@ -37,7 +37,7 @@ public class SpringAIConfig {
     ) {
         return chatClientBuilder
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor) //添加 Advisor 功能增强
-                .defaultTools(courseTools, orderTools) // 添加课程工具和预下单工具
+//                .defaultTools(courseTools, orderTools) // 添加课程工具和预下单工具
                 .build();
     }
 

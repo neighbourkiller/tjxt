@@ -1,0 +1,62 @@
+package com.tianji.aigc.agent;
+
+
+import com.tianji.aigc.config.SystemPromptConfig;
+import com.tianji.aigc.constants.Constant;
+import com.tianji.aigc.enums.AgentTypeEnum;
+import com.tianji.aigc.tools.CourseTools;
+import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * 课程推荐智能体
+ */
+@Component
+@RequiredArgsConstructor
+public class RecommendAgent extends AbstractAgent {
+
+    private final SystemPromptConfig systemPromptConfig; // 系统提示语配置类，用于获取推荐智能体的系统提示语
+    private final CourseTools courseTools; // 课程工具类，用于获取课程信息
+    private final VectorStore vectorStore; // 向量存储，用于RAG增强
+
+    @Override
+    public AgentTypeEnum getAgentType() {
+        return AgentTypeEnum.RECOMMEND;
+    }
+
+    @Override
+    public String systemMessage() {
+        return systemPromptConfig.getRecommendAgentSystemMessage().get();
+    }
+
+    @Override
+    public Object[] tools() {
+        return new Object[]{courseTools};
+    }
+
+    @Override
+    public Map<String, Object> toolContext(String sessionId, String requestId) {
+        return Map.of(Constant.REQUEST_ID, requestId);
+    }
+
+    @Override
+    public List<Advisor> advisors() {
+        // 定义RAG增强
+        var qaAdvisor = QuestionAnswerAdvisor.builder(this.vectorStore)
+                .searchRequest(SearchRequest.builder()
+                        .similarityThreshold(0.6d) // 相似度阈值
+                        .topK(6)  // 搜索的条数， 不能太多
+                        .build())
+                .build();
+
+        return List.of(qaAdvisor);
+    }
+}
