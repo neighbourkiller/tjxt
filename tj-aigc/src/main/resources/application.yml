@@ -43,6 +43,7 @@ tj:
   jdbc:
     database: tj_aigc #指定使用的数据库名
   ai:
+    chat-type: ROUTE # ROUTE / ENHANCE / APP
     prompt:
       system:
         chat:

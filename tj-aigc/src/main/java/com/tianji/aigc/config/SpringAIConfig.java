@@ -13,6 +13,8 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +40,23 @@ public class SpringAIConfig {
         return chatClientBuilder
                 .defaultAdvisors(loggerAdvisor, messageChatMemoryAdvisor) //添加 Advisor 功能增强
 //                .defaultTools(courseTools, orderTools) // 添加课程工具和预下单工具
+                .build();
+    }
+
+    /**
+     * 无记忆ChatClient, 仅用于路由Agent
+     * @param chatModel
+     * @param loggerAdvisor
+     * @return
+     */
+
+    @Bean("routeChatClient")
+    public ChatClient routeChatClient(
+            ChatModel chatModel,
+            @Qualifier("loggerAdvisor") Advisor loggerAdvisor) {
+        return ChatClient.builder(chatModel)
+                .defaultAdvisors(loggerAdvisor)
+                // 不添加 MessageChatMemoryAdvisor
                 .build();
     }
 

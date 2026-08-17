@@ -3,6 +3,7 @@ package com.tianji.aigc.agent;
 import com.tianji.aigc.config.SystemPromptConfig;
 import com.tianji.aigc.enums.AgentTypeEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.stereotype.Component;
 
@@ -25,23 +26,16 @@ public class RouteAgent extends AbstractAgent{
         return this.systemPromptConfig.getRouteAgentSystemMessage().get();
     }
 
-/*    @Override
-    public Object[] tools() {
-        return super.tools();
-    }
+    private final ChatClient routeChatClient;
 
     @Override
-    public Map<String, Object> toolContext(String sessionId, String requestId) {
-        return super.toolContext(sessionId, requestId);
+    public String process(String question, String sessionId) {
+        return routeChatClient.prompt()
+                .system(prompt -> prompt
+                        .text(this.systemMessage())
+                        .params(this.systemMessageParams()))
+                .user(question)
+                .call()
+                .content();
     }
-
-    @Override
-    public List<Advisor> advisors() {
-        return super.advisors();
-    }
-
-    @Override
-    public Map<String, Object> systemMessageParams() {
-        return super.systemMessageParams();
-    }*/
 }

@@ -139,8 +139,12 @@
             <artifactId>elasticsearch-java</artifactId>
             <version>8.15.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
-<!--        <dependency>-->
+        <!--        <dependency>-->
 <!--            <groupId>org.springframework.ai</groupId>-->
 <!--            <artifactId>spring-ai-starter-vector-store-redis</artifactId>-->
 <!--        </dependency>-->
