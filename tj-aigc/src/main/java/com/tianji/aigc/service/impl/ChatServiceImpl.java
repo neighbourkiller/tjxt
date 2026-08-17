@@ -28,13 +28,14 @@ import java.util.Map;
 
 /**
  * 聊天服务实现类
- *
+ * <p>
  * 增强型智能体
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "tj.ai", name = "chat-type", havingValue = "ENHANCE") // 仅在配置文件中设置tj.ai.chat-type=ENHANCE时才会加载该类
+@ConditionalOnProperty(prefix = "tj.ai", name = "chat-type", havingValue = "ENHANCE")
+// 仅在配置文件中设置tj.ai.chat-type=ENHANCE时才会加载该类
 public class ChatServiceImpl implements ChatService {
 
     public static final ChatEventVO STOP_EVENT = ChatEventVO.builder()  // 标记输出结束
@@ -162,6 +163,16 @@ public class ChatServiceImpl implements ChatService {
     public void stop(String sessionId) {
         var hashOps = stringRedisTemplate.boundHashOps(GENERATE_STATUS_KEY);
         hashOps.delete(sessionId);
+    }
+
+
+    @Override
+    public String chatText(String question) {
+        return this.chatClient.prompt()
+                .system(promptSystem -> promptSystem.text(this.systemPromptConfig.getTextSystemMessage().get()))
+                .user(question)
+                .call()
+                .content();
     }
 
 }

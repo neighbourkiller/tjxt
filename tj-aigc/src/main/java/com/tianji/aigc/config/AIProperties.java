@@ -20,6 +20,8 @@ public class AIProperties {
         private Chat consultAgent; // 系统提示语，用于咨询智能体
         private Chat knowledgeAgent; // 系统提示语，用于知识智能体
 
+        private Chat text; // 文本提示语，用于问答回复、润色等文本类型的业务
+
 
         @Data
         public static class Chat {

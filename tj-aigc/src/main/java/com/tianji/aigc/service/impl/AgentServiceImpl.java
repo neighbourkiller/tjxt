@@ -2,11 +2,14 @@ package com.tianji.aigc.service.impl;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.tianji.aigc.agent.Agent;
+import com.tianji.aigc.config.SystemPromptConfig;
 import com.tianji.aigc.enums.AgentTypeEnum;
 import com.tianji.aigc.enums.ChatEventTypeEnum;
 import com.tianji.aigc.service.ChatService;
 import com.tianji.aigc.vo.ChatEventVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -32,8 +35,8 @@ public class AgentServiceImpl implements ChatService {
         if (null == agent) {
             // 未找到对应的智能体，返回原始结果
             return Flux.just(ChatEventVO.builder()
-                            .eventType(ChatEventTypeEnum.DATA.getValue())
-                            .eventData(routeResult)
+                    .eventType(ChatEventTypeEnum.DATA.getValue())
+                    .eventData(routeResult)
                     .build());
         }
         return agent.processStream(question, sessionId);
@@ -53,6 +56,20 @@ public class AgentServiceImpl implements ChatService {
 
     @Override
     public void stop(String sessionId) {
-            this.findAgentByType(AgentTypeEnum.ROUTE).stop(sessionId);
+        this.findAgentByType(AgentTypeEnum.ROUTE).stop(sessionId);
+    }
+
+
+    private final SystemPromptConfig systemPromptConfig;
+    @Qualifier("chatClient")
+    private final ChatClient chatClient;
+
+    @Override
+    public String chatText(String question) {
+        return this.chatClient.prompt()
+                .system(promptSystem -> promptSystem.text(this.systemPromptConfig.getTextSystemMessage().get()))
+                .user(question)
+                .call()
+                .content();
     }
 }

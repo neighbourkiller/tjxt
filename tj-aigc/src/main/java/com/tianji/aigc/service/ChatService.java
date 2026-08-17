@@ -32,4 +32,12 @@ public interface ChatService {
     static String getConversationId(String sessionId) {
         return UserContext.getUser() + "_" + sessionId;
     }
+
+    /**
+     * 文本问答接口
+     *
+     * @param question 问题
+     * @return 回答内容
+     */
+    String chatText(String question);
 }

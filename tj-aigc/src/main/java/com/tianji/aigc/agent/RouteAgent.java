@@ -26,7 +26,7 @@ public class RouteAgent extends AbstractAgent{
         return this.systemPromptConfig.getRouteAgentSystemMessage().get();
     }
 
-    private final ChatClient routeChatClient;
+    private final ChatClient routeChatClient;// 注入无记忆的 ChatClient
 
     @Override
     public String process(String question, String sessionId) {
